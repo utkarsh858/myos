@@ -44,8 +44,8 @@ static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
 	return (uint16_t) uc | (uint16_t) color << 8;
 }
 
-static inline char anti_vga_entry(uint16_t code){
-	return (char)(code & 7);
+static inline unsigned char anti_vga_entry(uint16_t code){
+	return (unsigned char)(code & (255));
 }
  
 size_t strlen(const char* str) {
@@ -66,7 +66,7 @@ uint16_t* terminal_buffer;
 void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_BROWN, VGA_COLOR_RED);
 	terminal_buffer = (uint16_t*) 0xB8000;
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -76,25 +76,17 @@ void terminal_initialize(void) {
 	}
 }
  
-void terminal_setcolor(uint8_t color) {
-	terminal_color = color;
-}
- 
-void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
-	if(c!='\n'){
-	const size_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = vga_entry(c, color);
-	}
-	else {
-	terminal_column=0; 
-	if(++terminal_row==VGA_HEIGHT) scroll_down();
-	}
-}
-
 uint16_t terminal_getentryat(size_t x,size_t y){
 	const size_t index = y*VGA_WIDTH + x;
 	return anti_vga_entry(terminal_buffer[index]);
 }
+
+
+void terminal_setcolor(uint8_t color) {
+	terminal_color = color;
+}
+
+void terminal_putentryat(char c, uint8_t color, size_t x, size_t y);
 
 void scroll_down(void){
 	terminal_row--;
@@ -108,10 +100,24 @@ void scroll_down(void){
 			terminal_putentryat(temp,terminal_color,terminal_column,terminal_row);
 			}
 	for(terminal_column=0;terminal_column<VGA_WIDTH;terminal_column++)
-		terminal_putentryat(" ",terminal_color,terminal_column,mark_row);
+		terminal_putentryat(' ',terminal_color,terminal_column,mark_row);
 	terminal_row=mark_row;
 	terminal_column=mark_column;
 }
+ 
+void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
+	if(c!='\n'){
+	const size_t index = y * VGA_WIDTH + x;
+	terminal_buffer[index] = vga_entry(c, color);
+	}
+	else {
+	terminal_column=0; 
+	if(++terminal_row==VGA_HEIGHT) scroll_down();
+	}
+}
+
+
+
  
 void terminal_putchar(char c) {
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
@@ -140,5 +146,12 @@ void kernel_main(void) {
 	terminal_initialize();
  
 	/* Newline support is left as an exercise. */
-	terminal_writestring("Hello, kernel World!\nfnewnfknk\ndwedew\nefwrerew\nwqewrwerwer\n\n\n\n\n\n\n\n\n\n\werfwerfrf\n\n\n\n\n\n\nfeef\n");
+	terminal_writestring("Hello, Meghna Shukla ,tum bevkuf ho!\n\n\n\n\n\n2\n2\n2\n2\n2\n2\n2\n2");
+	
+	// terminal_putentryat('c',terminal_color,0,0);
+	// char temp=terminal_getentryat(0,0);
+	// temp=anti_vga_entry(vga_entry('A',terminal_color));
+	// terminal_putentryat(temp,terminal_color,3,4);
+
+
 }
